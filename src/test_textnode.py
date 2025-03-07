@@ -4,7 +4,7 @@ from textnode import TextNode, TextType
  
 
 class TestTextNode(unittest.TestCase):
-    # -*- __init__ -*-
+    # --- __init__ ---
     def test_initialization_without_url(self):
         """Test that a TextNode is initialized correctly without a URL."""
         node = TextNode("Test", TextType.NORMAL)
@@ -18,7 +18,7 @@ class TestTextNode(unittest.TestCase):
         self.assertEqual(node.text_type, TextType.LINK)
         self.assertEqual(node.url, "https://example.com")
 
-    # -*- __eq__ -*-
+    # --- __eq__ ---
     def test_equality_true(self):
         """Test that __eq__ returns True for equal TextNodes."""
         node1 = TextNode("URL", TextType.LINK, "https://example.com")
@@ -59,8 +59,8 @@ class TestTextNode(unittest.TestCase):
         with self.assertRaises(AttributeError):
             node == "Test"
     
-    # -*- __repr__ -*-
-    def test_repr_without_url(self):
+    # --- __repr__ ---
+    def test_representation_without_url(self):
         """
         Test that __repr__ returns the correct string representation
         without a URL.
@@ -69,7 +69,7 @@ class TestTextNode(unittest.TestCase):
         expected = "TextNode(Test, normal, None)"
         self.assertEqual(str(node), expected)
     
-    def test_repr_with_url(self):
+    def test_representation_with_url(self):
         """
         Test that __repr__ returns the correct string representation
         with a URL.
