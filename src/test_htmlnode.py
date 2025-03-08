@@ -4,7 +4,7 @@ from htmlnode import HTMLNode
 
 
 class TestHTMLNode(unittest.TestCase):
-    # --- __init__ ---
+    # --- __init__() ---
     def test_initialization_with_data(self):
         """Test that an HTMLNode is initialized correctly with data."""
         p = HTMLNode("p", "Test")
@@ -24,9 +24,9 @@ class TestHTMLNode(unittest.TestCase):
         self.assertIsNone(node.children)
         self.assertIsNone(node.props)
 
-    # --- __repr__ ---
+    # --- __repr__() ---
     def test_representation(self):
-        """Test that __repr__ returns the correct string representation."""
+        """Test that __repr__() returns the correct string representation."""
         p = HTMLNode("p", "Test")
         div_props = {"class": "container"}
         div = HTMLNode("div", "Test", p, div_props)
@@ -34,17 +34,17 @@ class TestHTMLNode(unittest.TestCase):
 
         self.assertEqual(str(div), expected)
 
-    # --- to_html ---
+    # --- to_html() ---
     def test_to_html(self):
-        """Test that to_html raises a NotImplementedError."""
+        """Test that to_html() raises a NotImplementedError."""
         node = HTMLNode("p", "Test")
         with self.assertRaises(NotImplementedError):
             node.to_html()
 
-    # --- props_to_html ---
+    # --- props_to_html() ---
     def test_props_to_html_with_props(self):
         """
-        Test that props_to_html returns the correct string of
+        Test that props_to_html() returns the correctly HTML string of
         the node's properties.
         """
         props = {
@@ -58,7 +58,7 @@ class TestHTMLNode(unittest.TestCase):
 
     def test_props_to_html_without_props(self):
         """
-        Test that props_to_html returns an empty string when
+        Test that props_to_html() returns an empty string when
         a node has no properties.
         """
         node = HTMLNode("p", "Test")
