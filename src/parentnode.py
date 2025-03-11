@@ -5,6 +5,9 @@ class ParentNode(HTMLNode):
     def __init__(self, tag, children, props=None):
         super().__init__(tag, None, children, props)
     
+    def __repr__(self):
+        return f"ParentNode({self.tag}, {self.children}, {self.props})"
+    
     def to_html(self):
         if self.tag is None:
             raise ValueError("Tag cannot be None.")
@@ -15,5 +18,4 @@ class ParentNode(HTMLNode):
         for child in self.children:
             children_html += child.to_html()
         
-        props = " " + self.props_to_html() if self.props else ""
-        return f"<{self.tag}{props}>{children_html}</{self.tag}>"
+        return f"<{self.tag}{self.props_to_html()}>{children_html}</{self.tag}>"
