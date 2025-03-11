@@ -17,4 +17,4 @@ class HTMLNode:
         
         prop_to_string = lambda prop: f'{prop[0]}="{prop[1]}"'
         prop_strings = list(map(prop_to_string, self.props.items()))
-        return " ".join(prop_strings)
+        return f" {' '.join(prop_strings)}"
