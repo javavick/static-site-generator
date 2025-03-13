@@ -164,8 +164,9 @@ class TestTextNodeToHTMLNode(unittest.TestCase):
         an invalid type.
         """
         text_node = TextNode("Test", "word")
-        with self.assertRaises(Exception):
+        with self.assertRaises(Exception) as context:
             text_node_to_html_node(text_node)
+        self.assertEqual(str(context.exception), "Invalid TextType.")
 
     def test_no_type(self):
         """
@@ -173,8 +174,9 @@ class TestTextNodeToHTMLNode(unittest.TestCase):
         is None.
         """
         text_node = TextNode("Test", None)
-        with self.assertRaises(Exception):
+        with self.assertRaises(Exception) as context:
             text_node_to_html_node(text_node)
+        self.assertEqual(str(context.exception), "Invalid TextType.")
 
 
 if __name__ == "__main__":
