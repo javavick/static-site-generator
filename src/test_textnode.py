@@ -1,7 +1,12 @@
 import unittest
 
 from leafnode import LeafNode
-from textnode import TextNode, TextType, text_node_to_html_node
+from textnode import (
+    TextNode,
+    TextType,
+    text_node_to_html_node,
+    split_nodes_delimiter
+)
  
 
 class TestTextNode(unittest.TestCase):
@@ -178,6 +183,117 @@ class TestTextNodeToHTMLNode(unittest.TestCase):
             text_node_to_html_node(text_node)
         self.assertEqual(str(context.exception), "Invalid TextType.")
 
+
+class TestSplitNodesDelimiter(unittest.TestCase):
+    def test_bold(self):
+        """Test that a TextNode with a bolded word is split correctly."""
+        node = TextNode("Test with a **bolded** word.", TextType.TEXT)
+        new_nodes = split_nodes_delimiter([node], "**", TextType.BOLD)
+        self.assertListEqual(
+            [
+                TextNode("Test with a ", TextType.TEXT),
+                TextNode("bolded", TextType.BOLD),
+                TextNode(" word.", TextType.TEXT),
+            ],
+            new_nodes,
+        )
+
+    def test_bold_two_words(self):
+        """Test that a TextNode with two bolded words is split correctly."""
+        node = TextNode(
+            "Test with **two** separately **bolded** words.", TextType.TEXT
+        )
+        new_nodes = split_nodes_delimiter([node], "**", TextType.BOLD)
+        self.assertListEqual(
+            [
+                TextNode("Test with ", TextType.TEXT),
+                TextNode("two", TextType.BOLD),
+                TextNode(" separately ", TextType.TEXT),
+                TextNode("bolded", TextType.BOLD),
+                TextNode(" words.", TextType.TEXT),
+            ],
+            new_nodes,
+        )
+
+    def test_bold_multiword_string(self):
+        """
+        Test that a TextNode with a multi-word bolded string is
+        split correctly.
+        """
+        node = TextNode(
+            "Test with two **bolded words** in it.", TextType.TEXT
+        )
+        new_nodes = split_nodes_delimiter([node], "**", TextType.BOLD)
+        self.assertListEqual(
+            [
+                TextNode("Test with two ", TextType.TEXT),
+                TextNode("bolded words", TextType.BOLD),
+                TextNode(" in it.", TextType.TEXT),
+            ],
+            new_nodes,
+        )
+
+    def test_bold_word_at_the_end(self):
+        """
+        Test that a TextNode with a bolded word at the end is
+        split correctly.
+        """
+        node = TextNode(
+            "Test with a bolded **word**", TextType.TEXT
+        )
+        new_nodes = split_nodes_delimiter([node], "**", TextType.BOLD)
+        self.assertListEqual(
+            [
+                TextNode("Test with a bolded ", TextType.TEXT),
+                TextNode("word", TextType.BOLD),
+            ],
+            new_nodes,
+        )
+
+    def test_italic(self):
+        """Test that a TextNode with an italicized word is split correctly."""
+        node = TextNode("Test with an _italic_ word", TextType.TEXT)
+        new_nodes = split_nodes_delimiter([node], "_", TextType.ITALIC)
+        self.assertListEqual(
+            [
+                TextNode("Test with an ", TextType.TEXT),
+                TextNode("italic", TextType.ITALIC),
+                TextNode(" word", TextType.TEXT),
+            ],
+            new_nodes,
+        )
+
+    def test_bold_and_italic(self):
+        """
+        Test that a TextNode with bolded and italicized words is
+        split correctly.
+        """
+        node = TextNode("Test with a **bold** and _italic_ word", TextType.TEXT)
+        new_nodes = split_nodes_delimiter([node], "**", TextType.BOLD)
+        new_nodes = split_nodes_delimiter(new_nodes, "_", TextType.ITALIC)
+        self.assertListEqual(
+            [
+                TextNode("Test with a ", TextType.TEXT),
+                TextNode("bold", TextType.BOLD),
+                TextNode(" and ", TextType.TEXT),
+                TextNode("italic", TextType.ITALIC),
+                TextNode(" word", TextType.TEXT),
+            ],
+            new_nodes,
+        )
+
+    def test_code(self):
+        """Test that a TextNode with a code block word is split correctly."""
+        node = TextNode("Test with a `code block` word", TextType.TEXT)
+        new_nodes = split_nodes_delimiter([node], "`", TextType.CODE)
+        self.assertListEqual(
+            [
+                TextNode("Test with a ", TextType.TEXT),
+                TextNode("code block", TextType.CODE),
+                TextNode(" word", TextType.TEXT),
+            ],
+            new_nodes,
+        )
 
 if __name__ == "__main__":
     unittest.main()
