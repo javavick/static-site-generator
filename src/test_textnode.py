@@ -5,7 +5,9 @@ from textnode import (
     TextNode,
     TextType,
     text_node_to_html_node,
-    split_nodes_delimiter
+    split_nodes_delimiter,
+    extract_markdown_images,
+    extract_markdown_links
 )
  
 
@@ -189,14 +191,13 @@ class TestSplitNodesDelimiter(unittest.TestCase):
         """Test that a TextNode with a bolded word is split correctly."""
         node = TextNode("Test with a **bolded** word.", TextType.TEXT)
         new_nodes = split_nodes_delimiter([node], "**", TextType.BOLD)
-        self.assertListEqual(
-            [
-                TextNode("Test with a ", TextType.TEXT),
-                TextNode("bolded", TextType.BOLD),
-                TextNode(" word.", TextType.TEXT),
-            ],
-            new_nodes,
-        )
+        expected = [
+            TextNode("Test with a ", TextType.TEXT),
+            TextNode("bolded", TextType.BOLD),
+            TextNode(" word.", TextType.TEXT),
+        ]
+
+        self.assertListEqual(new_nodes, expected)
 
     def test_bold_two_words(self):
         """Test that a TextNode with two bolded words is split correctly."""
@@ -204,16 +205,15 @@ class TestSplitNodesDelimiter(unittest.TestCase):
             "Test with **two** separately **bolded** words.", TextType.TEXT
         )
         new_nodes = split_nodes_delimiter([node], "**", TextType.BOLD)
-        self.assertListEqual(
-            [
-                TextNode("Test with ", TextType.TEXT),
-                TextNode("two", TextType.BOLD),
-                TextNode(" separately ", TextType.TEXT),
-                TextNode("bolded", TextType.BOLD),
-                TextNode(" words.", TextType.TEXT),
-            ],
-            new_nodes,
-        )
+        expected = [
+            TextNode("Test with ", TextType.TEXT),
+            TextNode("two", TextType.BOLD),
+            TextNode(" separately ", TextType.TEXT),
+            TextNode("bolded", TextType.BOLD),
+            TextNode(" words.", TextType.TEXT),
+        ]
+
+        self.assertListEqual(new_nodes, expected)
 
     def test_bold_multiword_string(self):
         """
@@ -224,14 +224,13 @@ class TestSplitNodesDelimiter(unittest.TestCase):
             "Test with two **bolded words** in it.", TextType.TEXT
         )
         new_nodes = split_nodes_delimiter([node], "**", TextType.BOLD)
-        self.assertListEqual(
-            [
-                TextNode("Test with two ", TextType.TEXT),
-                TextNode("bolded words", TextType.BOLD),
-                TextNode(" in it.", TextType.TEXT),
-            ],
-            new_nodes,
-        )
+        expected = [
+            TextNode("Test with two ", TextType.TEXT),
+            TextNode("bolded words", TextType.BOLD),
+            TextNode(" in it.", TextType.TEXT),
+        ]
+
+        self.assertListEqual(new_nodes, expected)
 
     def test_bold_word_at_the_end(self):
         """
@@ -242,26 +241,24 @@ class TestSplitNodesDelimiter(unittest.TestCase):
             "Test with a bolded **word**", TextType.TEXT
         )
         new_nodes = split_nodes_delimiter([node], "**", TextType.BOLD)
-        self.assertListEqual(
-            [
-                TextNode("Test with a bolded ", TextType.TEXT),
-                TextNode("word", TextType.BOLD),
-            ],
-            new_nodes,
-        )
+        expected = [
+            TextNode("Test with a bolded ", TextType.TEXT),
+            TextNode("word", TextType.BOLD),
+        ]
+
+        self.assertListEqual(new_nodes, expected)
 
     def test_italic(self):
         """Test that a TextNode with an italicized word is split correctly."""
         node = TextNode("Test with an _italic_ word", TextType.TEXT)
         new_nodes = split_nodes_delimiter([node], "_", TextType.ITALIC)
-        self.assertListEqual(
-            [
-                TextNode("Test with an ", TextType.TEXT),
-                TextNode("italic", TextType.ITALIC),
-                TextNode(" word", TextType.TEXT),
-            ],
-            new_nodes,
-        )
+        expected = [
+            TextNode("Test with an ", TextType.TEXT),
+            TextNode("italic", TextType.ITALIC),
+            TextNode(" word", TextType.TEXT),
+        ]
+
+        self.assertListEqual(new_nodes, expected)
 
     def test_bold_and_italic(self):
         """
@@ -271,29 +268,79 @@ class TestSplitNodesDelimiter(unittest.TestCase):
         node = TextNode("Test with a **bold** and _italic_ word", TextType.TEXT)
         new_nodes = split_nodes_delimiter([node], "**", TextType.BOLD)
         new_nodes = split_nodes_delimiter(new_nodes, "_", TextType.ITALIC)
-        self.assertListEqual(
-            [
-                TextNode("Test with a ", TextType.TEXT),
-                TextNode("bold", TextType.BOLD),
-                TextNode(" and ", TextType.TEXT),
-                TextNode("italic", TextType.ITALIC),
-                TextNode(" word", TextType.TEXT),
-            ],
-            new_nodes,
-        )
+        expected = [
+            TextNode("Test with a ", TextType.TEXT),
+            TextNode("bold", TextType.BOLD),
+            TextNode(" and ", TextType.TEXT),
+            TextNode("italic", TextType.ITALIC),
+            TextNode(" word", TextType.TEXT),
+        ]
+
+        self.assertListEqual(new_nodes, expected)
 
     def test_code(self):
         """Test that a TextNode with a code block word is split correctly."""
         node = TextNode("Test with a `code block` word", TextType.TEXT)
         new_nodes = split_nodes_delimiter([node], "`", TextType.CODE)
-        self.assertListEqual(
-            [
-                TextNode("Test with a ", TextType.TEXT),
-                TextNode("code block", TextType.CODE),
-                TextNode(" word", TextType.TEXT),
-            ],
-            new_nodes,
+        expected = [
+            TextNode("Test with a ", TextType.TEXT),
+            TextNode("code block", TextType.CODE),
+            TextNode(" word", TextType.TEXT),
+        ]
+
+        self.assertListEqual(new_nodes, expected)
+
+
+class TestExtractMarkdownImages(unittest.TestCase):
+    def test_extraction_single_image(self):
+        """
+        Test that a single image's URL and alt text are extracted correctly.
+        """
+        matches = extract_markdown_images(
+            "Here's an ![image](https://example.org/test.png)."
         )
+        expected = [("image", "https://example.org/test.png")]
+        self.assertListEqual(matches, expected)
+    
+    def test_extraction_multiple_images(self):
+        """
+        Test that multiple images' URLs and alt text are extracted correctly.
+        """
+        markdown = (
+            "Here's an ![image](https://example.org/test.png). "
+            "Here's ![another](https://example.org/test.jpg)."
+        )
+        matches = extract_markdown_images(markdown)
+        expected = [
+            ("image", "https://example.org/test.png"),
+            ("another", "https://example.org/test.jpg")
+        ]
+
+        self.assertListEqual(matches, expected)
+
+
+class TestExtractMarkdownLinks(unittest.TestCase):
+    def test_extraction_single_link(self):
+        """Test that a single link's URL and text are extracted correctly."""
+        markdown = "Here's a [link](https://example.org)."
+        matches = extract_markdown_links(markdown)
+        expected = [("link", "https://example.org")]
+        self.assertListEqual(matches, expected)
+    
+    def test_extraction_multiple_links(self):
+        """Test that multiple links' URLs and text are extracted correctly."""
+        markdown = (
+            "Here's a [link](https://example.org). "
+            "Here's [another](https://example.com)"
+        )
+        matches = extract_markdown_links(markdown)
+        expected = [
+            ("link", "https://example.org"),
+            ("another", "https://example.com")
+        ]
+        
+        self.assertListEqual(matches, expected)
+
 
 if __name__ == "__main__":
     unittest.main()
