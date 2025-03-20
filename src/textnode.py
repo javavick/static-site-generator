@@ -71,26 +71,42 @@ def split_nodes_delimiter(old_nodes, delimiter, text_type):
 
 
 def split_nodes_image(old_nodes):
+    return split_nodes(old_nodes, TextType.IMAGE)
+
+
+def split_nodes_link(old_nodes):
+    return split_nodes(old_nodes, TextType.LINK)
+
+
+def split_nodes(old_nodes, type):
     new_nodes = []
     for node in old_nodes:
         if node.text_type is not TextType.TEXT:
             new_nodes.append(node)
             continue
         
-        extracted_images = extract_markdown_images(node.text)
+        extracted_items = None
+        if type == TextType.IMAGE:
+            extracted_items = extract_markdown_images(node.text)
+        if type == TextType.LINK:
+            extracted_items = extract_markdown_links(node.text)
 
-        if len(extracted_images) == 0:
+        if len(extracted_items) == 0:
             if node.text:
                 new_nodes.append(node)
             continue
 
         node_text = node.text
-        for image in extracted_images:
-            split_text = node_text.split(f"![{image[0]}]({image[1]})", 1)
+        for item in extracted_items:
+            split_text = None
+            if type == TextType.IMAGE:
+                split_text = node_text.split(f"![{item[0]}]({item[1]})", 1)
+            if type == TextType.LINK:
+                split_text = node_text.split(f"[{item[0]}]({item[1]})", 1)
             
             if split_text[0] != "":
                 new_nodes.append(TextNode(split_text[0], TextType.TEXT))
-            new_nodes.append(TextNode(image[0], TextType.IMAGE, image[1]))
+            new_nodes.append(TextNode(item[0], type, item[1]))
             node_text = split_text[1]
         
         if node_text != "":

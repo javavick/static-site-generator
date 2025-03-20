@@ -7,6 +7,7 @@ from textnode import (
     text_node_to_html_node,
     split_nodes_delimiter,
     split_nodes_image,
+    split_nodes_link,
     extract_markdown_images,
     extract_markdown_links
 )
@@ -318,6 +319,25 @@ class TestExtractMarkdownImages(unittest.TestCase):
         ]
 
         self.assertListEqual(matches, expected)
+    
+    def test_extraction_multiple_nodes(self):
+        """
+        Test that multiple images' URLs and alt text are extracted correctly
+        from multiple TextNodes.
+        """
+        node1 = TextNode(
+            "Here's an ![image](https://example.org/test.png).", TextType.TEXT
+        )
+        node2 = TextNode(
+            "Here's ![another](https://example.org/test.jpg).", TextType.TEXT
+        )
+        matches = extract_markdown_images(node1.text + node2.text)
+        expected = [
+            ("image", "https://example.org/test.png"),
+            ("another", "https://example.org/test.jpg")
+        ]
+
+        self.assertListEqual(matches, expected)
 
 
 class TestExtractMarkdownLinks(unittest.TestCase):
@@ -340,6 +360,21 @@ class TestExtractMarkdownLinks(unittest.TestCase):
             ("another", "https://example.com")
         ]
         
+        self.assertListEqual(matches, expected)
+    
+    def test_extraction_multiple_nodes(self):
+        """
+        Test that multiple links' URLs and text are extracted correctly
+        from multiple TextNodes.
+        """
+        node1 = TextNode("Here's a [link](https://example.org).", TextType.TEXT)
+        node2 = TextNode("Here's [another](https://example.com)", TextType.TEXT)
+        matches = extract_markdown_links(node1.text + node2.text)
+        expected = [
+            ("link", "https://example.org"),
+            ("another", "https://example.com")
+        ]
+
         self.assertListEqual(matches, expected)
 
 
@@ -465,6 +500,109 @@ class TestSplitNodesImage(unittest.TestCase):
         node = TextNode("Text with no image", TextType.TEXT)
         new_nodes = split_nodes_image([node])
         expected = [node]
+
+        self.assertListEqual(new_nodes, expected)
+
+
+class TestSplitNodesLink(unittest.TestCase):
+    def test_with_text(self):
+        """
+        Test that a TextNode with text and a link is split
+        into multiple TextNodes correctly.
+        """
+        node = TextNode(
+            "Text with a [link](https://example.org/example)",
+            TextType.TEXT
+        )
+        new_nodes = split_nodes_link([node])
+        expected = [
+            TextNode("Text with a ", TextType.TEXT),
+            TextNode(
+                "link",
+                TextType.LINK,
+                "https://example.org/example"
+            )
+        ]
+
+        self.assertListEqual(new_nodes, expected)
+    
+    def test_without_text(self):
+        """
+        Test that a TextNode with only a link is split into
+        a single TextNode correctly.
+        """
+        node = TextNode(
+            "[link](https://example.org/example)",
+            TextType.TEXT
+        )
+        new_nodes = split_nodes_link([node])
+        expected = [
+            TextNode(
+                "link",
+                TextType.LINK,
+                "https://example.org/example"
+            )
+        ]
+
+        self.assertListEqual(new_nodes, expected)
+    
+    def test_multiple_links(self):
+        """
+        Test that a TextNode with multiple links is split into
+        multiple TextNodes correctly.
+        """
+        node = TextNode(
+            "Text with not one "
+            "[link](https://example.org/example1), but two "
+            "[links](https://example.org/example2)",
+            TextType.TEXT
+        )
+        new_nodes = split_nodes_link([node])
+        expected = [
+            TextNode("Text with not one ", TextType.TEXT),
+            TextNode(
+                "link",
+                TextType.LINK,
+                "https://example.org/example1"
+            ),
+            TextNode(", but two ", TextType.TEXT),
+            TextNode(
+                "links",
+                TextType.LINK,
+                "https://example.org/example2"
+            )
+        ]
+
+        self.assertListEqual(new_nodes, expected)
+    
+    def test_multiple_nodes(self):
+        """
+        Test that multiple TextNodes with links are split into
+        multiple TextNodes correctly.
+        """
+        node1 = TextNode(
+            "Text with a [link](https://example.org/example1)",
+            TextType.TEXT
+        )
+        node2 = TextNode(
+            " and another [link](https://example.org/example2)",
+            TextType.TEXT
+        )
+        new_nodes = split_nodes_link([node1, node2])
+        expected = [
+            TextNode("Text with a ", TextType.TEXT),
+            TextNode(
+                "link",
+                TextType.LINK,
+                "https://example.org/example1"
+            ),
+            TextNode(" and another ", TextType.TEXT),
+            TextNode(
+                "link",
+                TextType.LINK,
+                "https://example.org/example2"
+            )
+        ]
 
         self.assertListEqual(new_nodes, expected)
 
