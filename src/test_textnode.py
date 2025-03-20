@@ -9,7 +9,8 @@ from textnode import (
     split_nodes_image,
     split_nodes_link,
     extract_markdown_images,
-    extract_markdown_links
+    extract_markdown_links,
+    text_to_textnodes
 )
  
 
@@ -605,6 +606,113 @@ class TestSplitNodesLink(unittest.TestCase):
         ]
 
         self.assertListEqual(new_nodes, expected)
+
+
+class TestTextToTextnodes(unittest.TestCase):
+    def test_raw_text(self):
+        """
+        Test that a raw text string is converted to a single TextNode.
+        """
+        text = "This is a test."
+        nodes = text_to_textnodes(text)
+        expected = [TextNode(text, TextType.TEXT)]
+
+        self.assertListEqual(nodes, expected)
+    
+    def test_bold_text(self):
+        """
+        Test that a bolded text string is converted to multiple TextNodes.
+        """
+        text = "This is a **test**."
+        nodes = text_to_textnodes(text)
+        expected = [
+            TextNode("This is a ", TextType.TEXT),
+            TextNode("test", TextType.BOLD),
+            TextNode(".", TextType.TEXT)
+        ]
+
+        self.assertListEqual(nodes, expected)
+    
+    def test_italic_text(self):
+        """
+        Test that an italicized text string is converted to multiple TextNodes.
+        """
+        text = "This is a _test_."
+        nodes = text_to_textnodes(text)
+        expected = [
+            TextNode("This is a ", TextType.TEXT),
+            TextNode("test", TextType.ITALIC),
+            TextNode(".", TextType.TEXT)
+        ]
+
+        self.assertListEqual(nodes, expected)
+    
+    def test_code_text(self):
+        """
+        Test that a code block text string is converted to multiple TextNodes.
+        """
+        text = "This is a `test`."
+        nodes = text_to_textnodes(text)
+        expected = [
+            TextNode("This is a ", TextType.TEXT),
+            TextNode("test", TextType.CODE),
+            TextNode(".", TextType.TEXT)
+        ]
+
+        self.assertListEqual(nodes, expected)
+    
+    def test_link_text(self):
+        """
+        Test that a linked text string is converted to multiple TextNodes.
+        """
+        text = "This is a [link](https://example.com)."
+        nodes = text_to_textnodes(text)
+        expected = [
+            TextNode("This is a ", TextType.TEXT),
+            TextNode("link", TextType.LINK, "https://example.com"),
+            TextNode(".", TextType.TEXT)
+        ]
+
+        self.assertListEqual(nodes, expected)
+    
+    def test_image_text(self):
+        """
+        Test that an image text string is converted to multiple TextNodes.
+        """
+        text = "This is an ![image](https://example.com/test.png)."
+        nodes = text_to_textnodes(text)
+        expected = [
+            TextNode("This is an ", TextType.TEXT),
+            TextNode("image", TextType.IMAGE, "https://example.com/test.png"),
+            TextNode(".", TextType.TEXT)
+        ]
+
+        self.assertListEqual(nodes, expected)
+    
+    def test_multiple_text_types(self):
+        """
+        Test that a text string with multiple text types is converted to
+        multiple TextNodes.
+        """
+        text = (
+            "This is a **bolded** _italicized_ `code block` "
+            "[link](https://example.com) ![image](https://example.com/test.png)"
+        )
+        nodes = text_to_textnodes(text)
+        expected = [
+            TextNode("This is a ", TextType.TEXT),
+            TextNode("bolded", TextType.BOLD),
+            TextNode(" ", TextType.TEXT),
+            TextNode("italicized", TextType.ITALIC),
+            TextNode(" ", TextType.TEXT),
+            TextNode("code block", TextType.CODE),
+            TextNode(" ", TextType.TEXT),
+            TextNode("link", TextType.LINK, "https://example.com"),
+            TextNode(" ", TextType.TEXT),
+            TextNode("image", TextType.IMAGE, "https://example.com/test.png")
+        ]
+
+        self.assertListEqual(nodes, expected)
 
 
 if __name__ == "__main__":
