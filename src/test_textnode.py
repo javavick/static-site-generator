@@ -6,6 +6,7 @@ from textnode import (
     TextType,
     text_node_to_html_node,
     split_nodes_delimiter,
+    split_nodes_image,
     extract_markdown_images,
     extract_markdown_links
 )
@@ -340,6 +341,132 @@ class TestExtractMarkdownLinks(unittest.TestCase):
         ]
         
         self.assertListEqual(matches, expected)
+
+
+class TestSplitNodesImage(unittest.TestCase):
+    def test_with_text(self):
+        """
+        Test that a TextNode with text and an image is split
+        into multiple TextNodes correctly
+        """
+        node = TextNode(
+        "Text with an ![image](https://example.org/example.png)",
+        TextType.TEXT
+        )
+        new_nodes = split_nodes_image([node])
+        expected = [
+            TextNode("Text with an ", TextType.TEXT),
+            TextNode(
+                "image",
+                TextType.IMAGE,
+                "https://example.org/example.png"
+            )
+        ]
+
+        self.assertListEqual(new_nodes, expected)
+    
+    def test_without_text(self):
+        """
+        Test that a TextNode with only an image is split into
+        a single TextNode correctly.
+        """
+        node = TextNode(
+            "![image](https://example.org/example.png)",
+            TextType.TEXT
+        )
+        new_nodes = split_nodes_image([node])
+        expected = [
+            TextNode(
+            "image",
+            TextType.IMAGE,
+            "https://example.org/example.png"
+            )
+        ]
+
+        self.assertListEqual(new_nodes, expected)
+    
+    def test_multiple_images(self):
+        """
+        Test that a TextNode with multiple images is split into
+        multiple TextNodes correctly.
+        """
+        node = TextNode(
+            "Text with not one "
+            "![image](https://example.org/example1.png), but two "
+            "![images](https://example.org/example2.png)",
+            TextType.TEXT
+        )
+        new_nodes = split_nodes_image([node])
+        expected = [
+            TextNode("Text with not one ", TextType.TEXT),
+            TextNode(
+                "image",
+                TextType.IMAGE,
+                "https://example.org/example1.png"
+            ),
+            TextNode(", but two ", TextType.TEXT),
+            TextNode(
+                "images",
+                TextType.IMAGE,
+                "https://example.org/example2.png"
+            )
+        ]
+
+        self.assertListEqual(new_nodes, expected)
+    
+    def test_multiple_nodes(self):
+        """
+        Test that multiple TextNodes with images are split into
+        multiple TextNodes correctly.
+        """
+        node1 = TextNode(
+            "Text with an ![image](https://example.org/example1.png)",
+            TextType.TEXT
+        )
+        node2 = TextNode(
+            " and another ![image](https://example.org/example2.png)",
+            TextType.TEXT
+        )
+        new_nodes = split_nodes_image([node1, node2])
+        expected = [
+            TextNode("Text with an ", TextType.TEXT),
+            TextNode(
+                "image",
+                TextType.IMAGE,
+                "https://example.org/example1.png"
+            ),
+            TextNode(" and another ", TextType.TEXT),
+            TextNode(
+                "image",
+                TextType.IMAGE,
+                "https://example.org/example2.png"
+            )
+        ]
+
+        self.assertListEqual(new_nodes, expected)
+    
+    def test_not_text_type_text(self):
+        """
+        Test that a TextNode with a non-TEXT `text_type` is not split.
+        """
+        node = TextNode(
+            "Text with an ![image](https://example.org/example.png)",
+            TextType.BOLD
+        )
+        new_nodes = split_nodes_image([node])
+        expected = [node]
+
+        self.assertListEqual(new_nodes, expected)
+    
+    def test_no_image(self):
+        """
+        Test that a TextNode with no image is not split.
+        """
+        node = TextNode("Text with no image", TextType.TEXT)
+        new_nodes = split_nodes_image([node])
+        expected = [node]
+
+        self.assertListEqual(new_nodes, expected)
 
 
 if __name__ == "__main__":
