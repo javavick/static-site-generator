@@ -48,6 +48,25 @@ class TestLeafNode(unittest.TestCase):
         node = LeafNode("p", "Test", {"class": "text-base"})
         expected = "LeafNode(p, Test, {'class': 'text-base'})"
         self.assertEqual(str(node), expected)
+
+    # --- __eq__() ---
+    def test_equality(self):
+        """
+        Test that two LeafNode objects are equal when they have
+        the same tag, value, and properties.
+        """
+        node1 = LeafNode("p", "Test", {"class": "text-base"})
+        node2 = LeafNode("p", "Test", {"class": "text-base"})
+        self.assertEqual(node1, node2)
+    
+    def test_inequality_different_tag(self):
+        """
+        Test that two LeafNode objects are not equal when they
+        have different tags.
+        """
+        node1 = LeafNode("p", "Test")
+        node2 = LeafNode("div", "Test")
+        self.assertNotEqual(node1, node2)
     
     # --- to_html() ---
     def test_to_html_with_all_data(self):
